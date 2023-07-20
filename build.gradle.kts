@@ -22,7 +22,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath("com.github.ben-manes:gradle-versions-plugin:0.42.0")
+        classpath("com.github.ben-manes:gradle-versions-plugin:0.47.0")
     }
 }
 
@@ -35,9 +35,9 @@ plugins {
     jacoco
     checkstyle
     `java-library`
-    id("org.owasp.dependencycheck") version "7.1.1"
-    id("com.github.spotbugs") version "5.0.4" apply false
-    id("io.spring.dependency-management") version "1.0.11.RELEASE" apply false
+    id("org.owasp.dependencycheck") version "7.3.2"
+    id("com.github.spotbugs") version "5.0.8" apply false
+    id("io.spring.dependency-management") version "1.1.1" apply false
     id("org.sonarqube") version "3.3"
     id("org.asciidoctor.jvm.pdf") version "3.3.2"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
@@ -253,11 +253,11 @@ subprojects {
     }
 
     dependencies {
-        implementation("org.apache.logging.log4j:log4j-core:2.17.0")
+        implementation("org.apache.logging.log4j:log4j-core:2.20.0")
 
-        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-        testImplementation("org.junit.platform:junit-platform-commons:1.9.2")
-        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+        testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
+        testImplementation("org.junit.platform:junit-platform-commons:1.9.3")
+        testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.3")
     }
 }
 
