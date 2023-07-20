@@ -36,8 +36,8 @@ plugins {
     checkstyle
     `java-library`
     id("org.owasp.dependencycheck") version "7.3.2"
-    id("com.github.spotbugs") version "5.0.8" apply false
-    id("io.spring.dependency-management") version "1.1.1" apply false
+    id("com.github.spotbugs") version "5.0.13" apply false
+    id("io.spring.dependency-management") version "1.1.0" apply false
     id("org.sonarqube") version "3.3"
     id("org.asciidoctor.jvm.pdf") version "3.3.2"
     id("org.asciidoctor.jvm.convert") version "3.3.2"
@@ -92,7 +92,7 @@ configure<DependencyCheckExtension> {
 }
 
 afterEvaluate {
-    var jacocoExclusions = listOf("my/project/module1/**")
+    val jacocoExclusions = listOf("api")
 
     project.tasks.register("jacocoRootReport", ReportWithExclusionsTask::class.java) {
         dependsOn("test")
@@ -171,16 +171,12 @@ allprojects {
     }
 
     tasks.withType<DependencyUpdatesTask> {
-        resolutionStrategy {
-            componentSelection {
-                all {
-                    if (candidate.version.isNonStable() && currentVersion.isStable()) {
-                        reject("Release candidate")
-                    }
-                }
-            }
+        rejectVersionIf {
+            isNonStable(candidate.version) && !isNonStable(currentVersion)
         }
+    }
 
+    tasks.named<DependencyUpdatesTask>("dependencyUpdates").configure {
         // optional parameters
         checkForGradleUpdate = true
         outputFormatter = "html"
@@ -229,7 +225,7 @@ subprojects {
     configure<CheckstyleExtension> {
         configFile = file("$rootDir/gradle/checkstyle/checkstyle.xml")
         configDirectory.set(file("$rootDir/gradle/checkstyle"))
-        toolVersion = "8.36.2"
+        toolVersion = "10.12.1"
     }
 
     configure<SpotBugsExtension> {
@@ -245,15 +241,17 @@ subprojects {
         }
 
         withType<SpotBugsTask> {
-            reports {
-                maybeCreate("html").required.set(true)
-                maybeCreate("xml").required.set(false)
+            reports.create("html") {
+                required.set(true)
+                outputLocation.set(file("$buildDir/reports/spotbugs.html"))
+                setStylesheet("fancy-hist.xsl")
             }
         }
     }
 
     dependencies {
         implementation("org.apache.logging.log4j:log4j-core:2.20.0")
+        implementation("com.github.spotbugs:spotbugs-annotations:4.7.3")
 
         testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.3")
         testImplementation("org.junit.platform:junit-platform-commons:1.9.3")
@@ -287,14 +285,11 @@ fun MutableSet<Project>.allExecutionData(): List<File> {
         }.filter { Files.exists(it.toPath()) }
 }
 
-fun String.isNonStable(): Boolean {
-    return isStable().not()
-}
-
-fun String.isStable(): Boolean {
-    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { toUpperCase().contains(it) }
+fun isNonStable(version: String): Boolean {
+    val stableKeyword = listOf("RELEASE", "FINAL", "GA").any { version.uppercase().contains(it) }
     val regex = "^[0-9,.v-]+(-r)?$".toRegex()
-    return stableKeyword || regex.matches(this)
+    val isStable = stableKeyword || regex.matches(version)
+    return isStable.not()
 }
 
 open class ReportWithExclusionsTask: JacocoReport() {
